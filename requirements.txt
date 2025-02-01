@@ -1,0 +1,35 @@
+# Core Libraries
+numpy
+pandas
+requests
+pdfplumber
+tqdm
+python-dotenv
+lxml
+beautifulsoup4
+
+# Pinecone (Vector Database)
+pinecone-client
+
+# LangChain & OpenAI/Groq Integrations
+langchain
+langchain-groq
+langchain-community
+langchain-openai
+langchain-pinecone
+langchain-core
+
+# Google Gemini API
+google-generativeai
+
+# Web Scraping
+selenium
+webdriver-manager
+
+# Streamlit (for UI)
+streamlit
+
+# Search APIs
+arxiv
+wikipedia-api
+duckduckgo-search
