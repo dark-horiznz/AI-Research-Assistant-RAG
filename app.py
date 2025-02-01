@@ -20,15 +20,12 @@ from typing import List, Dict
 import requests
 from io import BytesIO
 
-# Load environment variables
 load_dotenv()
 
-# Initialize services
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 search_tool = DuckDuckGoSearchRun()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Constants for Index names and models
 INDEX_NAMES = {
     "openai": "rag",
     "groq": "gemini-rag",
@@ -40,13 +37,10 @@ GROQ_MODELS = [
     "mixtral-8x7b-32768", "deepseek-r1-distill-llama-70b"
 ]
 
-# Previous GeminiEmbeddings class remains the same
-
-# Document processing class with improved error handling
 class GeminiEmbeddings:
     def __init__(self):
         self.model_name = "models/embedding-001"
-        self._dimension = 768  # Gemini embedding dimension
+        self._dimension = 768  
     
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """Create embeddings for a list of documents."""
@@ -84,7 +78,6 @@ class ResearchEngine:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                     tmp.write(response.content)
                     docs = DocumentProcessor.process_pdf(tmp.name)
-                    # Add metadata to each document chunk
                     if metadata:
                         for doc in docs:
                             doc.metadata.update(metadata)
@@ -146,12 +139,10 @@ class ResearchEngine:
                 continue
         return documents
 
-# Add this to AIChains class
     @staticmethod
     def research_chain(question: str, model_name: str, mode: str = "arxiv", pdf_links: List[str] = None, titles: List[str] = None) -> str:
         """Enhanced research chain with multiple modes."""
         try:
-            # Get documents based on mode
             if mode == "arxiv":
                 docs = ResearchEngine.fetch_and_process_arxiv_papers(question)
             elif mode == "custom_pdfs" and pdf_links:
@@ -162,13 +153,11 @@ class ResearchEngine:
             if not docs:
                 return "No relevant documents found or could not process PDFs."
             
-            # Create embeddings and vectorstore
             embeddings = GeminiEmbeddings()
             vectorstore = VectorStoreManager.get_vectorstore(docs, embeddings, INDEX_NAMES["research"])
             if not vectorstore:
                 return "Error: Could not process documents"
             
-            # Create retrieval chain
             llm = ChatGroq(model_name=model_name)
             retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
             
@@ -218,7 +207,6 @@ class DocumentProcessor:
                             }
                         ))
                 
-                # Split documents into chunks
                 text_splitter = RecursiveCharacterTextSplitter(
                     chunk_size=1000,
                     chunk_overlap=200,
@@ -234,11 +222,10 @@ class VectorStoreManager:
     def get_vectorstore(docs: List[Document], embeddings, index_name: str) -> PineconeVectorStore:
         """Create or get a vector store for the given documents."""
         try:
-            # Ensure index exists
             if index_name not in pc.list_indexes().names():
                 pc.create_index(
                     name=index_name,
-                    dimension=768,  # Gemini embedding dimension
+                    dimension=768,  
                     metric="cosine"
                 )
             
@@ -264,7 +251,6 @@ class VectorStoreManager:
         except Exception as e:
             st.error(f"Error clearing index: {str(e)}")
 
-# AI Chains class with all necessary methods
 class AIChains:
     @staticmethod
     def openai_chain(question: str, context: str = "", pdf_path: str = None) -> str:
@@ -377,7 +363,6 @@ class AIChains:
         except Exception as e:
             return f"Research Error: {str(e)}"
 
-# Enhanced Streamlit UI
 st.set_page_config(
     page_title="AI Research Assistant",
     page_icon="🔬",
@@ -385,7 +370,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Updated styling with more modern look
 st.markdown("""
 <style>
     /* Base styles */
@@ -527,17 +511,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "pdf_path" not in st.session_state:
     st.session_state.pdf_path = None
 
-# Enhanced sidebar
 with st.sidebar:
     st.title("🤖 AI Research Assistant")
     
-    # Chat controls
     st.subheader("💬 Chat Controls")
     col1, col2 = st.columns(2)
     with col1:
@@ -549,20 +530,17 @@ with st.sidebar:
     
     st.divider()
     
-    # Model settings
     st.subheader("🛠️ Model Settings")
     model_choice = st.selectbox("Select Model", ["OpenAI", "Groq"], key="model_choice")
     
     if model_choice == "Groq":
         groq_model = st.selectbox("Model Version", GROQ_MODELS)
     
-    # Database controls
     st.subheader("📊 Database Controls")
     selected_index = st.selectbox("Select Index", list(INDEX_NAMES.values()))
     if st.button("🗑️ Clear Selected Index"):
         VectorStoreManager.clear_index(selected_index)
     
-    # Document upload
     st.subheader("📄 Document Upload")
     pdf_file = st.file_uploader("Upload PDF", type="pdf")
     
@@ -572,10 +550,8 @@ with st.sidebar:
             st.session_state.pdf_path = tmp.name
             st.success("✅ PDF uploaded successfully!")
 
-# Main chat interface
 st.header("AI Research Assistant", divider="rainbow")
 
-# Chat container
 with st.container():
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     for message in st.session_state.messages:
@@ -586,15 +562,12 @@ with st.container():
                     st.write(message["sources"])
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Search container
 with st.container():
     st.markdown('<div class="search-container">', unsafe_allow_html=True)
     
-    # Chat input
     prompt = st.text_input("Ask me anything...", key="chat_input", 
                           placeholder="Type your message here...")
     
-    # Search buttons
     col1, col2, col3 = st.columns([1, 1, 4])
     with col1:
         web_search = st.button("🌐 Web")
@@ -626,7 +599,6 @@ with st.container():
                                 research_response = ""
                             context += f"\nResearch Context:\n{research_response}\n"
                     
-                    # Get response from selected model
                     if not (web_search or research_search):
                         with st.spinner("💭 Generating response..."):
                             if model_choice == "OpenAI":
@@ -635,7 +607,7 @@ with st.container():
                                     context=context,
                                     pdf_path=st.session_state.pdf_path
                                 )
-                            else:  # Groq
+                            else:  
                                 response = AIChains.groq_chain(
                                     question=prompt,
                                     model_name=groq_model,
@@ -645,17 +617,14 @@ with st.container():
                     else:
                         response = context
                     
-                    # Display response with markdown formatting
                     st.markdown(response)
                     
-                    # Show sources in expandable section if available
                     if sources:
                         with st.expander("📚 View Sources"):
                             for source_type, content in sources.items():
                                 st.subheader(f"{source_type} Sources")
                                 st.markdown(content)
                     
-                    # Add to chat history
                     st.session_state.messages.append({
                         "role": "assistant",
                         "content": response,
@@ -684,7 +653,6 @@ if research_mode == "Custom PDFs":
     pdf_links_list = [url.strip() for url in pdf_links.split('\n') if url.strip()] if pdf_links else []
     pdf_titles_list = [title.strip() for title in pdf_titles.split('\n') if title.strip()] if pdf_titles else []
 
-# Modify the research search button handler:
 if research_search:
     with st.spinner("📚 Analyzing research papers..."):
         if model_choice == "Groq":
@@ -708,7 +676,6 @@ if research_search:
             research_response = ""
         context += f"\nResearch Context:\n{research_response}\n"
 
-# Cleanup temporary files
 if st.session_state.pdf_path and not pdf_file:
     try:
         os.unlink(st.session_state.pdf_path)
@@ -716,9 +683,8 @@ if st.session_state.pdf_path and not pdf_file:
     except Exception as e:
         st.error(f"Error cleaning up temporary files: {str(e)}")
 
-# Add a footer
 st.markdown("""
 <div style='position: fixed; bottom: 150px; left: 0; right: 0; text-align: center; padding: 10px; font-size: 0.8em; color: #666;'>
-    Made with ❤️ using Streamlit
+    Made with ❤️ by Aditya Singh
 </div>
 """, unsafe_allow_html=True)
