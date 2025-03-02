@@ -3,7 +3,9 @@
 <p>
   <a href="https://huggingface.co/spaces/majorSeaweed/Research-Assistant-RAG"><img src="https://img.shields.io/badge/🤗%20Deployed%20on-HuggingFace%20Spaces-blue" alt="Deployed on HuggingFace"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8%2B-blue" alt="Python Version"></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="https://licensebuttons.net/l/by-sa/4.0/88x31.png" alt="CC BY-SA 4.0 License"></a>
+
+
 </p>
 
 <p align="center">
